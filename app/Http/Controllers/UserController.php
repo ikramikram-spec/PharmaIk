@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -17,9 +19,22 @@ class UserController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        //
+        User::create([
+            'name' => $request -> name,
+            'email' => $request -> email,
+            'password' => Hash::make($request -> password),
+            'contact' => $request -> contact,
+            'role' => $request -> role,
+            'address' => $request -> address,
+            'proj_name' => $request -> proj_name,
+            'proj_localisation' => $request -> proj_localisation,
+            'is_active' => $request -> is_active ?? true,            
+        ]);
+
+        return redirect('user.index')
+            ->with('success', 'Employee account created successfully');
     }
 
     /**

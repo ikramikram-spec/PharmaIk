@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -18,9 +19,20 @@ class AuthController extends Controller
 
         $cerdentials = $request -> only('email', 'password');
 
-        if(Auth::attempt($cerdentials)) {
-            return redirect('dashboard.index')
-                ->with()
+        if(Auth::attempt($cerdentials)){
+            return redirect(route('dashboard.index')) -> with('success', 'login succefully') ;
         }
     }
+
+    public function logout(Request $request){
+        Auth::logout();
+        $request -> session() -> invalidate();
+        $request -> session() -> regenerateToken();
+        return redirect() -> route('auth.login');
+    }
+    
+    public function showregister(){
+        return view('auth.register');
+    }
+    
 }
