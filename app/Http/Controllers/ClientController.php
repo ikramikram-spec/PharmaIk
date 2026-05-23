@@ -63,11 +63,11 @@ class ClientController extends Controller
     public function update(Request $request, Client $client)
     {
         $request->validate([
-            'name'    => 'required|string|max:255',
-            'email'   => 'nullable|email',
+            'client_name' => 'required|string',
+            'email' => 'nullable|email',
             'contact' => 'nullable|string|max:15',
+            'credit' => 'nullable|numeric',
             'address' => 'nullable|string',
-            'credit'  => 'nullable|numeric|min:0',
         ]);
 
         $client -> update($request -> all());

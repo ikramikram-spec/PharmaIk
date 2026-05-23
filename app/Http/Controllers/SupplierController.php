@@ -22,9 +22,10 @@ class SupplierController extends Controller
      */
     public function create()
     {
-        if(Auth::user() -> role !== 'admin'){
+        if(Auth::user() -> role === 'admin'){
             return view('suppliers.create');
         }
+        return redirect()->route('Dashboard.index') -> with('error', 'Access denied. Admins only');
     }
 
     /**
@@ -32,7 +33,7 @@ class SupplierController extends Controller
      */
     public function store(Request $request)
     {
-        if(Auth::user() -> role !== 'admin'){
+        if(Auth::user() -> role === 'admin'){
 
             $request ->validate([
                 'company_name' => 'required|string', 
@@ -61,7 +62,7 @@ class SupplierController extends Controller
      */
     public function edit(Supplier $supplier)
     {
-        if(Auth::user() -> role !== 'admin'){
+        if(Auth::user() -> role === 'admin'){
             return view('suppliers.create', compact('supplier'));
         }
     }
@@ -71,7 +72,7 @@ class SupplierController extends Controller
      */
     public function update(Request $request, Supplier $supplier)
     {
-        if(Auth::user() -> role !== 'admin'){
+        if(Auth::user() -> role === 'admin'){
 
             $request ->validate([
                 'company_name' => 'required|string', 
@@ -90,7 +91,7 @@ class SupplierController extends Controller
      */
     public function destroy(Supplier $supplier)
     {
-        if(Auth::user() -> role !== 'admin'){
+        if(Auth::user() -> role === 'admin'){
 
             $supplier -> delete();
             return redirect() -> route('suppliers.index') -> with('success', 'Supplier deleted successfully');
