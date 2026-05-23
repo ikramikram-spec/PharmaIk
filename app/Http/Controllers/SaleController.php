@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Client;
+use App\Models\Product;
+use App\Models\Sale;
+use App\Models\SaleDetail;
 use Illuminate\Http\Request;
 
 class SaleController extends Controller
@@ -11,7 +15,8 @@ class SaleController extends Controller
      */
     public function index()
     {
-        //
+        $sales = Sale::with('client', 'user') -> latest() -> paginate(20);
+        return view('sales.index', compact('sales'));
     }
 
     /**
@@ -19,7 +24,9 @@ class SaleController extends Controller
      */
     public function create()
     {
-        //
+        $clients  = Client::all();
+        $products = Product::with('stock')->get();
+        return view('sales.create', compact('clients', 'products'));
     }
 
     /**
@@ -31,8 +38,12 @@ class SaleController extends Controller
             'date_selling' => 'required|date',
             'total_amount' => 'numeric',
             'client_id' => 'required|exists:clients,id',
-            'user_id' => 'required|exists:users,id'
+            'user_id' => 'required|exists:users,id',
+            'note' => 'nullable'
         ]);
+
+        Sale::create($request -> all());
+        return redirect() -> route('sales.index') -> with('success', 'sale added successfully');
     }
 
     /**
@@ -46,24 +57,35 @@ class SaleController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Sale $sale)
     {
-        //
+        $clients  = Client::all();
+        $products = Product::with('stock')->get();
+        return view('sales.create', compact('clients', 'products'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Sale $sale)
     {
-        //
+        $request -> validate([
+            'date_selling' => 'required|date',
+            'total_amount' => 'numeric',
+            'client_id' => 'required|exists:clients,id',
+            'user_id' => 'required|exists:users,id',
+            'note' => 'nullable'
+        ]);
+        $sale -> update($request -> all());
+        return redirect() -> route('sales.index') -> with('success', 'Sale updated successfully');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Sale $sale)
     {
-        //
+        $sale -> delete();
+        return redirect() -> route('sales.index') -> with('success', 'Sale deleted successfully');
     }
 }

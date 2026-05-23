@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Client;
 use Illuminate\Http\Request;
 
 class ClientController extends Controller
@@ -11,7 +12,8 @@ class ClientController extends Controller
      */
     public function index()
     {
-        //
+        $clients = Client::paginate(20);
+        return view('clients.index', compact('clients'));
     }
 
     /**
@@ -19,7 +21,7 @@ class ClientController extends Controller
      */
     public function create()
     {
-        //
+        return view('clients.create');
     }
 
     /**
@@ -34,6 +36,9 @@ class ClientController extends Controller
             'credit' => 'nullable|numeric',
             'address' => 'nullable|string'
         ]);
+
+        Client::create($request -> all());
+        return redirect() -> route('clients.index') ->with('success', 'Client added successfully') ;
     }
 
     /**
@@ -47,24 +52,37 @@ class ClientController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Client $client)
     {
-        //
+        return view('clients.create', compact('client'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Client $client)
     {
-        //
+        $request->validate([
+            'name'    => 'required|string|max:255',
+            'email'   => 'nullable|email',
+            'contact' => 'nullable|string|max:15',
+            'address' => 'nullable|string',
+            'credit'  => 'nullable|numeric|min:0',
+        ]);
+
+        $client -> update($request -> all());
+
+        return redirect()->route('clients.index')
+            -> with('success', 'Client updated successfully');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Client $client)
     {
-        //
+        $client->delete();
+        return redirect() -> route('clients.index')
+            -> with('success', 'Client deleted successfully');
     }
 }

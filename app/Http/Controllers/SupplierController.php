@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SupplierController extends Controller
 {
@@ -11,7 +13,8 @@ class SupplierController extends Controller
      */
     public function index()
     {
-        //
+        $suppliers = Supplier::withCount('products') -> paginate(20);
+        return view('suppliers.index', compact('suppliers'));
     }
 
     /**
@@ -19,7 +22,9 @@ class SupplierController extends Controller
      */
     public function create()
     {
-        //
+        if(Auth::user() -> role !== 'admin'){
+            return view('suppliers.create');
+        }
     }
 
     /**
@@ -27,12 +32,20 @@ class SupplierController extends Controller
      */
     public function store(Request $request)
     {
-        $request ->validate([
-            'company_name' => 'required|string', 
-            'localisation' => 'nullable|string', 
-            'email' => 'email',
-            'contact' => 'required'
-        ]);
+        if(Auth::user() -> role !== 'admin'){
+
+            $request ->validate([
+                'company_name' => 'required|string', 
+                'localisation' => 'nullable|string', 
+                'email' => 'email',
+                'contact' => 'required'
+            ]);
+
+            Supplier::create($request->all());
+
+            return redirect()->route('suppliers.index')
+                ->with('success', 'Supplier added successfully');
+        }
     }
 
     /**
@@ -46,24 +59,41 @@ class SupplierController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Supplier $supplier)
     {
-        //
+        if(Auth::user() -> role !== 'admin'){
+            return view('suppliers.create', compact('supplier'));
+        }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Supplier $supplier)
     {
-        //
+        if(Auth::user() -> role !== 'admin'){
+
+            $request ->validate([
+                'company_name' => 'required|string', 
+                'localisation' => 'nullable|string', 
+                'email' => 'email',
+                'contact' => 'required'
+            ]);
+            $supplier -> update($request -> all());
+
+            return redirect() -> route('suppliers.index') -> with('success', 'Supplier updated successfully');
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Supplier $supplier)
     {
-        //
+        if(Auth::user() -> role !== 'admin'){
+
+            $supplier -> delete();
+            return redirect() -> route('suppliers.index') -> with('success', 'Supplier deleted successfully');
+        }
     }
 }
