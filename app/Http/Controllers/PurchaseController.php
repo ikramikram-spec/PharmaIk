@@ -16,7 +16,7 @@ class PurchaseController extends Controller
     public function index()
     {
         $purchases = Purchase::with('supplier', 'user') ->latest() -> paginate(20);
-        return view('purchases.index', compact($purchases));
+        return view('purchases.index', compact('purchases'));
     }
 
     /**
@@ -62,7 +62,7 @@ class PurchaseController extends Controller
     {
         $suppliers  = Supplier::all();
         $products = Product::with('stock')->get();
-        return view('sales.create', compact('clients', 'products'));
+        return view('purchases.create', compact('purchase', 'suppliers', 'products'));
     }
 
     /**

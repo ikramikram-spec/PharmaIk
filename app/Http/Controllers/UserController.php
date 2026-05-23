@@ -19,22 +19,9 @@ class UserController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request)
+    public function create()
     {
-        User::create([
-            'name' => $request -> name,
-            'email' => $request -> email,
-            'password' => Hash::make($request -> password),
-            'contact' => $request -> contact,
-            'role' => $request -> role,
-            'address' => $request -> address,
-            'proj_name' => $request -> proj_name,
-            'proj_localisation' => $request -> proj_localisation,
-            'is_active' => $request -> is_active ?? true,            
-        ]);
-
-        return redirect('user.index')
-            ->with('success', 'Employee account created successfully');
+        return view('users.create');   
     }
 
     /**
@@ -53,6 +40,8 @@ class UserController extends Controller
             'proj_localisation' => 'nullable|string',
             'is_active' => 'boolean'
         ]);
+
+        return redirect('user.index') -> with('success', 'Employee account created successfully');
     }
 
     /**
