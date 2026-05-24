@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Client;
+use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,8 +17,8 @@ return new class extends Migration
             $table->id();
             $table->date('date_selling');
             $table->decimal('total_amount', 10, 2)->default(0);
-            $table->foreignId('client_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('client_id')->constrained('Clients')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('Users')->onDelete('cascade');
             $table->text('note')->nullable();
             $table->timestamps();
         });

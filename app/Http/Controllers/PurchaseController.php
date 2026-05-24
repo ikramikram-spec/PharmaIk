@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseDetail;
+use App\Models\Stock;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PurchaseController extends Controller
 {
@@ -25,7 +27,7 @@ class PurchaseController extends Controller
     public function create()
     {
         $suppliers = Supplier::all();
-        $products  = Product::all();
+        $products  = Product::with('stock')->get();
         return view('purchases.create', compact('suppliers', 'products'));
     }
 
@@ -41,9 +43,47 @@ class PurchaseController extends Controller
             'supplier_id' => 'required|exists:suppliers,id',
             'user_id' => 'required|exists:users,id',
             'statut' => 'required|in:pending,delivered,cancelled',
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.quantity' => 'required|integer|min:1',
+            'products.*.price' => 'required|numeric|min:0',
             'note' => 'nullable'
         ]);
-        Purchase::create($request -> all());
+
+        $total = 0;
+        foreach($request -> products as $item){
+            $total += $item['quantity'] * $item['unit_price'];
+        }
+
+        $purchase = Purchase::create([
+            'date_ordering' => $request -> date_ordering,
+            'date_delivering' => $request -> date_delivering,
+            'supplier_id' => $request->supplier_id,
+            'user_id' => Auth::user() -> id,
+            'total_amount' => $total,
+            'statut' => $request -> statut,
+            'date_purchase' => now(),
+            'note' => $request -> note,
+        ]);
+
+        foreach($request -> products as $item){
+            $purchase -> purchaseDetails() -> create([
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['unit_price'],
+        ]);
+
+        $stock = Stock::where('product_id', $item['product_id']) -> first();
+        if($stock){
+            $stock -> quantity += $item['quantity'];
+            $stock -> save();
+        } else {
+            Stock::create([
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+            ]);
+        }
+    }
         return redirect() -> route('purchases.index') -> with('success', 'purchase added successfully');
     }
 
@@ -88,6 +128,7 @@ class PurchaseController extends Controller
      */
     public function destroy(Purchase $purchase)
     {
+        $purchase->purchaseDetails()->delete();
         $purchase -> delete();
         return redirect() -> route('purchases.index') -> with('success', 'Purchase deleted successfully');
     }

@@ -6,7 +6,9 @@ use App\Models\Client;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleDetail;
+use App\Models\Stock;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SaleController extends Controller
 {
@@ -39,19 +41,53 @@ class SaleController extends Controller
             'total_amount' => 'numeric',
             'client_id' => 'required|exists:clients,id',
             'user_id' => 'required|exists:users,id',
-            'note' => 'nullable'
+            'note' => 'nullable',
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.sales_quantity' => 'required|integer|min:1',
+            'products.*.unit_price' => 'required|numeric|min:0',
         ]);
 
-        Sale::create($request -> all());
+        $total = 0;
+        foreach($request -> products as $item){
+            $total += $item['sales_quantity'] * $item['unit_price'];
+        }
+
+        $sale = Sale::create([
+            'date_selling' => $request -> date_selling,
+            'total_amount' => $request -> total_amount,
+            'client_id' => $request -> client_id,
+            'user_id' => Auth::user() -> id,
+            'note' => $request -> note,
+            'total' => $total,
+        ]);
+
+        foreach ($request -> products as $item) {
+            SaleDetail::create([
+                'sale_id' => $sale -> id,
+                'product_id' => $item['product_id'],
+                'sales_quantity' => $item['sales_quantity'],
+                'unit_price' => $item['unit_price'],
+                'total' => $item['sales_quantity'] * $item['unit_price'],
+            ]);
+
+            $stock = Stock::where('product_id', $item['product_id'])->first();
+            if($stock){
+                $stock -> sales_quantity -= $item['sales_quantity'];
+                $stock->save();
+            }
+        }
+
         return redirect() -> route('sales.index') -> with('success', 'sale added successfully');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Sale $sale)
     {
-        //
+        $sale->load('client', 'user', 'saleDetails.product');
+        return view('sales.index', compact('sale'));
     }
 
     /**
@@ -61,7 +97,7 @@ class SaleController extends Controller
     {
         $clients  = Client::all();
         $products = Product::with('stock')->get();
-        return view('sales.create', compact('clients', 'products'));
+        return view('sales.create', compact('sale', 'clients', 'products'));
     }
 
     /**
@@ -85,6 +121,10 @@ class SaleController extends Controller
      */
     public function destroy(Sale $sale)
     {
+        foreach ($sale -> saleDetails as $detail) {
+            Stock::where('product_id', $detail -> product_id) -> increment('sales_quantity', $detail -> sales_quantity);
+        }
+
         $sale -> delete();
         return redirect() -> route('sales.index') -> with('success', 'Sale deleted successfully');
     }
