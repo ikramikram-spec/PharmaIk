@@ -16,8 +16,24 @@ use Illuminate\Support\Facades\Route;
 
 //login
 Route::get('/', function () {
-    return redirect() -> route('auth.login');
+    return view('welcome');
 });
+
+Route::get('/HomePage', function() {
+    return view('test.dashboard');
+});
+Route::get('/loginPage', function() {
+    return view('test.login');
+});
+Route::get('/ClientsPage', function() {
+    return view('test.clients');
+});
+
+
+
+
+
+
 Route::get('/login', [AuthController::class, 'showlogin']) -> name('auth.login');
 Route::post('/login', [AuthController::class, 'login']) -> name('auth.login.submit');
 Route::post('/logout', [AuthController::class, 'logout']) -> name('logout');
