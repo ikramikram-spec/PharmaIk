@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Stock;
 use Illuminate\Http\Request;
 
 class StockController extends Controller
@@ -11,7 +12,10 @@ class StockController extends Controller
      */
     public function index()
     {
-        //
+        $stocks = Stock::with('product') -> paginate(20);
+        $lowStock = Stock::with('product') -> where('quantity', '<', 10) -> get();
+
+        return view('stocks.index', compact('stocks', 'lowStock'));
     }
 
     /**
@@ -46,17 +50,25 @@ class StockController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Stock $stock)
     {
-        //
+        return view('stocks.edit', compact('stock'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Stock $stock)
     {
-        //
+        $request -> validate([
+            'quantity' => 'required|integer',
+        ]);
+
+        $stock -> update([
+            'quantity' => $request -> quantity,
+        ]);
+
+        return redirect() -> route('Stocks.index') -> with('success', 'Stock updated successfully');
     }
 
     /**

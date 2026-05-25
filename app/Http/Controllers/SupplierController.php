@@ -25,7 +25,7 @@ class SupplierController extends Controller
         if(Auth::user() -> role === 'admin'){
             return view('suppliers.create');
         }
-        return redirect()->route('Dashboard.index') -> with('error', 'Access denied. Admins only');
+        return redirect() -> route('Dashboard.index') -> with('error', 'Access denied. Admins only');
     }
 
     /**
@@ -42,11 +42,12 @@ class SupplierController extends Controller
                 'contact' => 'required'
             ]);
 
-            Supplier::create($request->all());
+            Supplier::create($request -> all());
 
-            return redirect()->route('suppliers.index')
-                ->with('success', 'Supplier added successfully');
+            return redirect() -> route('suppliers.index') -> with('success', 'Supplier added successfully');
         }
+
+        return redirect() -> route('Dashboard.index') -> with('error', 'Access denied. Admins only');
     }
 
     /**
@@ -65,6 +66,9 @@ class SupplierController extends Controller
         if(Auth::user() -> role === 'admin'){
             return view('suppliers.create', compact('supplier'));
         }
+        
+        return redirect() -> route('suppliers.index') -> with('error', 'Access denied. Admins only');
+
     }
 
     /**
@@ -84,6 +88,9 @@ class SupplierController extends Controller
 
             return redirect() -> route('suppliers.index') -> with('success', 'Supplier updated successfully');
         }
+        
+        return redirect() -> route('Suppliers.index') -> with('error', 'Access denied. Admins only');
+
     }
 
     /**
@@ -96,5 +103,8 @@ class SupplierController extends Controller
             $supplier -> delete();
             return redirect() -> route('suppliers.index') -> with('success', 'Supplier deleted successfully');
         }
+
+        return redirect() -> route('Suppliers.index') -> with('error', 'Access denied. Admins only');
+
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
@@ -11,7 +12,8 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        //
+        $categories = Category::withCount('products') -> paginate(20);
+        return view('categories.index', compact('categories'));
     }
 
     /**
@@ -19,7 +21,7 @@ class CategoryController extends Controller
      */
     public function create()
     {
-        //
+        return view('categories.create');
     }
 
     /**
@@ -31,6 +33,9 @@ class CategoryController extends Controller
             'category_name' => 'required|string|max:100', 
             'description' => 'nullable|string', 
         ]);
+
+        Category::create($request -> all());
+        return redirect() -> route('Categories.index') -> with('success', 'Category added successfully');
     }
 
     /**
@@ -44,24 +49,31 @@ class CategoryController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Category $category)
     {
-        //
+        return view('categories.create', compact('category'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Category $category)
     {
-        //
+        $request->validate([
+            'category_name' => 'required|string'. $category -> id,
+            'description' => 'nullable|string',
+        ]);
+
+        $category -> update($request->all());
+        return redirect() -> route('Categories.index') -> with('success', 'Category updated successfully');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Category $category)
     {
-        //
+        $category->delete();
+        return redirect() -> route('Categories.index') -> with('success', 'Category deleted successfully');
     }
 }

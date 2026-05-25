@@ -6,13 +6,14 @@ use App\Models\Client;
 use App\Models\Product;
 use App\Models\Sale;
 use Illuminate\Http\Request;
+use App\Models\Stock;
 
 class DashboardController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index() 
     {
         $TotalClient = Client::count();
         $TotalProduct = Product::count();
@@ -22,8 +23,12 @@ class DashboardController extends Controller
             -> latest()
             -> get();
     
+        $lowStock = Stock::with('product')
+        ->where('quantity', '<', 10)
+        ->get();
+
         return view('dashboard.index', compact(
-            'TotalClient', 'TotalProduct', 'TotalsalesToday', 'TodaySales'
+            'TotalClient', 'TotalProduct', 'TotalsalesToday', 'TodaySales','lowStock' 
         ));
     }
 
